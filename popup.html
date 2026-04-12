@@ -1,52 +1,181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Page Info</title>
-  <style>
-    body { font-family: Arial; width: 350px; }
-    .tabs { overflow: hidden; border-bottom: 1px solid #ccc; }
-    .tabs button {
-      background-color: inherit;
-      float: left;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 10px 15px;
-      transition: 0.3s;
-      font-size: 14px;
-    }
-    .tabs button:hover { background-color: #ddd; }
-    .tabs button.active { background-color: #eee; }
-    .tab-content { padding: 15px 12px; border: 1px solid #ccc; border-top: none; }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-    h3 { margin-top: 0; }
-    ul { padding-left: 18px; }
-    label { font-weight: bold; }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>SEO Helper</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        width: 400px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+      .tabs {
+        overflow: hidden;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 15px;
+        background-color: #e9ecef;
+      }
+      .tabs button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 12px 20px;
+        transition: 0.3s;
+        font-size: 16px;
+        border-right: 1px solid #dee2e6; /* Separator */
+        border-top: none;
+        border-left: none;
+        border-bottom: none;
+        margin-right: 0px; /* No space needed if borders are used */
+        font-weight: 500;
+        color: #495057;
+      }
+      .tabs button:hover {
+        background-color: #ced4da;
+        color: #212529;
+      }
+      .tabs button.active {
+        background-color: #ffffff;
+        border-bottom: 2px solid #ffffff;
+        color: #007bff;
+        font-weight: bold;
+      }
+      .tab-content {
+        border: 1px solid #dee2e6;
+        border-top: none;
+        padding: 20px;
+        background-color: #ffffff;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+      }
+      .tab-pane {
+        display: none;
+      }
+      .tab-pane.active {
+        display: block;
+      }
+      h3 {
+        margin-top: 0;
+        color: #007bff;
+        font-size: 20px;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+      }
 
-<div class="tabs">
-  <button class="tab-button" data-tab="overview">Overview</button>
-  <button class="tab-button" data-tab="headings">Headings</button>
-</div>
+      /* Styles for Overview Tab */
+      #overview p {
+        margin-bottom: 12px;
+        line-height: 1.6;
+      }
+      #overview label {
+        font-weight: bold;
+        color: #495057;
+        display: inline-block;
+        width: 100px;
+      } /* Aligned labels */
+      #pageTitle,
+      #pageDescription,
+      #pageUrl,
+      #canonicalUrl {
+        color: #333;
+        display: inline-block;
+        vertical-align: top; /* Align text with label */
+        max-width: calc(100% - 110px); /* Prevent overflow */
+        word-wrap: break-word; /* Wrap long URLs/descriptions */
+      }
+      #pageDescription {
+        max-width: calc(100% - 110px);
+      } /* Ensure description also wraps */
 
-<div id="overview" class="tab-pane active">
-  <h3>Page Overview</h3>
-  <p><label>Title:</label> <span id="pageTitle"></span></p>
-  <p><label>Description:</label> <span id="pageDescription"></span></p>
-  <p><label>URL:</label> <span id="pageUrl"></span></p>
-  <p><label>Canonical URL:</label> <span id="canonicalUrl"></span></p>
-</div>
+      /* Styles for Headings Tab */
+      #result {
+        list-style-type: none; /* Removes the dots */
+        padding: 0;
+      }
 
-<div id="headings" class="tab-pane">
-  <h3>Heading Count</h3>
-  <ul id="result"></ul>
-</div>
+      #result li {
+        margin-bottom: 10px;
+        line-height: 1.5;
+        color: #495057;
+        border-bottom: 1px solid #eee; /* Light separator line */
+        padding-bottom: 5px;
+      }
 
-<script src="popup.js"></script>
+      /* Updated Tag Label Styling */
+      .tag {
+        font-size: 11px;
+        font-weight: bold;
+        background-color: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-right: 8px;
+        color: #495057;
+        text-transform: uppercase;
+      }
 
-</body>
+      /* Responsive Hierarchy */
+      #result li.h1 {
+        padding-left: 0px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #212529;
+      }
+      #result li.h2 {
+        padding-left: 15px;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      #result li.h3 {
+        padding-left: 30px;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      #result li.h4 {
+        padding-left: 45px;
+        font-size: 14px;
+        font-weight: 400;
+      }
+      #result li.h5 {
+        padding-left: 60px;
+        font-size: 13px;
+        font-weight: 400;
+      }
+      #result li.h6 {
+        padding-left: 75px;
+        font-size: 12px;
+        font-weight: 400;
+        color: #808080;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tabs">
+      <button class="tab-button" data-tab="overview">Overview</button>
+      <button class="tab-button" data-tab="headings">Headings</button>
+    </div>
+
+    <div id="overview" class="tab-pane">
+      <div class="tab-content">
+        <h3>Page Overview</h3>
+        <p><label>Title:</label> <span id="pageTitle"></span></p>
+        <p><label>Description:</label> <span id="pageDescription"></span></p>
+        <p><label>URL:</label> <span id="pageUrl"></span></p>
+        <p><label>Canonical URL:</label> <span id="canonicalUrl"></span></p>
+      </div>
+    </div>
+
+    <div id="headings" class="tab-pane">
+      <div class="tab-content">
+        <h3>Page Headings</h3>
+        <ul id="result"></ul>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
 </html>

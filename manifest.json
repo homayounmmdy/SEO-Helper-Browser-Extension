@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Seo Helper",
+  "name": "SEO Helper",
   "version": "1.0",
+  "description": "Shows page title, description, canonical, and lists headings.",
   "permissions": ["scripting", "activeTab"],
   "action": {
     "default_popup": "popup.html"
