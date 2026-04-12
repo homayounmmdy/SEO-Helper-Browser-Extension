@@ -42,13 +42,11 @@ function openTab(tabName, buttonElement) {
 async function getPageInfoAndHeadings() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-  // Execute script to get both overview info and headings data
   const results = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     function: getPageDataScript,
   });
 
-  // Check if results were returned
   if (!results || !results[0] || !results[0].result) {
     console.error("Failed to get page data.");
     return;
@@ -65,34 +63,70 @@ async function getPageInfoAndHeadings() {
     data.canonicalUrl || "Missing";
 
   // Populate Headings tab with actual content
-  const list = document.getElementById("result");
-  list.innerHTML = ""; // Clear previous results
+  const headingsList = document.getElementById("result");
+  headingsList.innerHTML = ""; // Clear previous results
 
   if (data.headings.length === 0) {
     const li = document.createElement("li");
     li.textContent = "No headings found on this page.";
-    list.appendChild(li);
+    headingsList.appendChild(li);
   } else {
     data.headings.forEach(({ tag, text }) => {
       const li = document.createElement("li");
       li.classList.add(tag); // Add class for hierarchy (padding/font)
 
-      // Create the tag label (e.g., "H1")
       const tagLabel = document.createElement("span");
       tagLabel.className = "tag";
       tagLabel.textContent = tag.toUpperCase(); // e.g., "H1"
 
-      // Create the text node
       const textNode = document.createTextNode(text.trim());
 
-      // Append label and text to the list item
       li.appendChild(tagLabel);
       li.appendChild(textNode);
 
-      list.appendChild(li);
+      headingsList.appendChild(li);
     });
   }
+
+  // Count headings by tag
+  const headingCounts = {};
+  data.headings.forEach((heading) => {
+    headingCounts[heading.tag] = (headingCounts[heading.tag] || 0) + 1;
+  });
+
+  // Populate Headings Status
+  const statusList = document.getElementById("headings-status");
+  statusList.innerHTML = ""; // Clear previous status
+
+  const sortedTags = ["h1", "h2", "h3", "h4", "h5", "h6"];
+  sortedTags.forEach((tag) => {
+    const count = headingCounts[tag] || 0;
+    if (count >= 0) {
+      const li = document.createElement("li");
+      li.className = "heading-status-item";
+
+      const tagSpan = document.createElement("span");
+      tagSpan.className = "tag-count-tag";
+      tagSpan.textContent = tag.toUpperCase(); // e.g., "H1"
+
+      const countSpan = document.createElement("span");
+      countSpan.className = "tag-count-number";
+      countSpan.textContent = count; // The count
+
+      li.appendChild(tagSpan);
+      li.appendChild(countSpan);
+      statusList.appendChild(li);
+    }
+  });
+
+   // Add a general status message if no headings are found at all
+  if (data.headings.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No headings found on this page.";
+      statusList.appendChild(li);
+  }
 }
+
 
 // This function will be executed in the context of the current page
 function getPageDataScript() {

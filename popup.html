@@ -151,6 +151,32 @@
         font-weight: 400;
         color: #808080;
       }
+
+      #headings-status {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 200px; /* Fixed width for the status section */
+        border-left: 1px solid #eee; /* Separator line */
+        padding-left: 20px;
+      }
+
+      .heading-status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+      .tag-count-tag {
+        font-weight: bold;
+        color: #555; 
+      }
+
+      .tag-count-number {
+        color: #999;
+        font-size: 0.85rem;
+      }
     </style>
   </head>
   <body>
@@ -170,9 +196,10 @@
     </div>
 
     <div id="headings" class="tab-pane">
-      <div class="tab-content">
+      <div class="tab-content" id="headingsContent">
         <h3>Page Headings</h3>
         <ul id="result"></ul>
+        <ul id="headings-status"></ul>
       </div>
     </div>
 
