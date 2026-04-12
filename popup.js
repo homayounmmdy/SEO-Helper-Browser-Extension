@@ -54,6 +54,14 @@ async function getPageInfoAndHeadings() {
 
   const data = results[0].result;
 
+  // Populate Schema tab
+  const schemaOutput = document.getElementById("schema-output");
+  if (data.schemaData && data.schemaData.length > 0) {
+    schemaOutput.textContent = JSON.stringify(data.schemaData, null, 2);
+  } else {
+    schemaOutput.textContent = "No JSON-LD schema found on this page.";
+  }
+
   // Populate Overview tab
   document.getElementById("pageTitle").textContent = data.title || "Missing";
   document.getElementById("pageDescription").textContent =
@@ -119,11 +127,11 @@ async function getPageInfoAndHeadings() {
     }
   });
 
-   // Add a general status message if no headings are found at all
+  // Add a general status message if no headings are found at all
   if (data.headings.length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "No headings found on this page.";
-      statusList.appendChild(li);
+    const li = document.createElement("li");
+    li.textContent = "No headings found on this page.";
+    statusList.appendChild(li);
   }
 
   // Populate Social tab
@@ -131,35 +139,34 @@ async function getPageInfoAndHeadings() {
   socialList.innerHTML = ""; // Clear previous results
 
   if (Object.keys(data.socialMetaTags).length === 0) {
-      const li = document.createElement("li");
-      li.textContent = "No Open Graph or Twitter meta tags found.";
-      socialList.appendChild(li);
+    const li = document.createElement("li");
+    li.textContent = "No Open Graph or Twitter meta tags found.";
+    socialList.appendChild(li);
   } else {
-      // Sort keys for consistent display (e.g., og:title, og:description, twitter:card, etc.)
-      const sortedKeys = Object.keys(data.socialMetaTags).sort();
+    // Sort keys for consistent display (e.g., og:title, og:description, twitter:card, etc.)
+    const sortedKeys = Object.keys(data.socialMetaTags).sort();
 
-      sortedKeys.forEach(key => {
-          const values = data.socialMetaTags[key];
-          values.forEach(value => {
-              const li = document.createElement("li");
-              li.className = "social-meta-item";
+    sortedKeys.forEach((key) => {
+      const values = data.socialMetaTags[key];
+      values.forEach((value) => {
+        const li = document.createElement("li");
+        li.className = "social-meta-item";
 
-              const keySpan = document.createElement("span");
-              keySpan.className = "social-meta-key";
-              keySpan.textContent = key;
+        const keySpan = document.createElement("span");
+        keySpan.className = "social-meta-key";
+        keySpan.textContent = key;
 
-              const valueSpan = document.createElement("span");
-              valueSpan.className = "social-meta-value";
-              valueSpan.textContent = value;
+        const valueSpan = document.createElement("span");
+        valueSpan.className = "social-meta-value";
+        valueSpan.textContent = value;
 
-              li.appendChild(keySpan);
-              li.appendChild(valueSpan);
-              socialList.appendChild(li);
-          });
+        li.appendChild(keySpan);
+        li.appendChild(valueSpan);
+        socialList.appendChild(li);
       });
+    });
   }
 }
-
 
 // This function will be executed in the context of the current page
 // This function will be executed in the context of the current page
@@ -186,11 +193,13 @@ function getPageDataScript() {
 
   // Get Open Graph and Twitter meta tags
   const socialMetaTags = {};
-  const metaTags = document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]');
+  const metaTags = document.querySelectorAll(
+    'meta[property^="og:"], meta[name^="twitter:"]',
+  );
 
-  metaTags.forEach(tag => {
-    const key = tag.getAttribute('property') || tag.getAttribute('name');
-    const value = tag.getAttribute('content');
+  metaTags.forEach((tag) => {
+    const key = tag.getAttribute("property") || tag.getAttribute("name");
+    const value = tag.getAttribute("content");
     if (key && value) {
       // Store them, can be organized later
       if (!socialMetaTags[key]) {
@@ -199,7 +208,32 @@ function getPageDataScript() {
       socialMetaTags[key].push(value);
     }
   });
+  const schemaScripts = document.querySelectorAll(
+    'script[type="application/ld+json"]',
+  );
+  const schemaData = [];
 
-  return { title, description, url, canonicalUrl, headings, socialMetaTags };
+  schemaScripts.forEach((script) => {
+    try {
+      const json = JSON.parse(script.textContent);
+      // Handle both single objects and arrays of schemas
+      if (Array.isArray(json)) {
+        schemaData.push(...json);
+      } else {
+        schemaData.push(json);
+      }
+    } catch (e) {
+      console.error("Error parsing JSON-LD", e);
+    }
+  });
+
+  return {
+    title,
+    description,
+    url,
+    canonicalUrl,
+    headings,
+    socialMetaTags,
+    schemaData,
+  };
 }
-

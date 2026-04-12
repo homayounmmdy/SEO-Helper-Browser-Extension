@@ -218,6 +218,7 @@
       <button class="tab-button" data-tab="overview">Overview</button>
       <button class="tab-button" data-tab="headings">Headings</button>
       <button class="tab-button" data-tab="social">Social</button>
+      <button class="tab-button" data-tab="schema">Schema</button>
     </div>
 
     <div id="overview" class="tab-pane">
@@ -242,6 +243,21 @@
       <div class="tab-content">
         <h3>Social Meta Tags</h3>
         <ul id="social-list"></ul>
+      </div>
+    </div>
+    <div id="schema" class="tab-pane">
+      <div class="tab-content">
+        <h3>Structured Data (Schema)</h3>
+        <pre
+          id="schema-output"
+          style="
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            background: #f8f8f8;
+            padding: 10px;
+          "
+        ></pre>
       </div>
     </div>
     <script src="popup.js"></script>
