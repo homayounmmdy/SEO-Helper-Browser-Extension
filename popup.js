@@ -73,11 +73,11 @@ async function getPageInfoAndHeadings() {
   } else {
     data.headings.forEach(({ tag, text }) => {
       const li = document.createElement("li");
-      li.classList.add(tag); // Add class for hierarchy (padding/font)
+      li.classList.add(tag);
 
       const tagLabel = document.createElement("span");
       tagLabel.className = "tag";
-      tagLabel.textContent = tag.toUpperCase(); // e.g., "H1"
+      tagLabel.textContent = tag.toUpperCase();
 
       const textNode = document.createTextNode(text.trim());
 
@@ -101,17 +101,17 @@ async function getPageInfoAndHeadings() {
   const sortedTags = ["h1", "h2", "h3", "h4", "h5", "h6"];
   sortedTags.forEach((tag) => {
     const count = headingCounts[tag] || 0;
-    if (count >= 0) {
+    if (count > 0) {
       const li = document.createElement("li");
       li.className = "heading-status-item";
 
       const tagSpan = document.createElement("span");
       tagSpan.className = "tag-count-tag";
-      tagSpan.textContent = tag.toUpperCase(); // e.g., "H1"
+      tagSpan.textContent = tag.toUpperCase();
 
       const countSpan = document.createElement("span");
       countSpan.className = "tag-count-number";
-      countSpan.textContent = count; // The count
+      countSpan.textContent = count;
 
       li.appendChild(tagSpan);
       li.appendChild(countSpan);
@@ -125,9 +125,43 @@ async function getPageInfoAndHeadings() {
       li.textContent = "No headings found on this page.";
       statusList.appendChild(li);
   }
+
+  // Populate Social tab
+  const socialList = document.getElementById("social-list");
+  socialList.innerHTML = ""; // Clear previous results
+
+  if (Object.keys(data.socialMetaTags).length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No Open Graph or Twitter meta tags found.";
+      socialList.appendChild(li);
+  } else {
+      // Sort keys for consistent display (e.g., og:title, og:description, twitter:card, etc.)
+      const sortedKeys = Object.keys(data.socialMetaTags).sort();
+
+      sortedKeys.forEach(key => {
+          const values = data.socialMetaTags[key];
+          values.forEach(value => {
+              const li = document.createElement("li");
+              li.className = "social-meta-item";
+
+              const keySpan = document.createElement("span");
+              keySpan.className = "social-meta-key";
+              keySpan.textContent = key;
+
+              const valueSpan = document.createElement("span");
+              valueSpan.className = "social-meta-value";
+              valueSpan.textContent = value;
+
+              li.appendChild(keySpan);
+              li.appendChild(valueSpan);
+              socialList.appendChild(li);
+          });
+      });
+  }
 }
 
 
+// This function will be executed in the context of the current page
 // This function will be executed in the context of the current page
 function getPageDataScript() {
   const title = document.querySelector("title")?.textContent;
@@ -143,14 +177,29 @@ function getPageDataScript() {
 
   tags.forEach((tag) => {
     document.querySelectorAll(tag).forEach((element) => {
-      // Get text content, trim whitespace, and filter out empty strings
       const text = element.textContent.trim();
       if (text) {
-        // Only add headings that have some visible text
         headings.push({ tag: tag, text: text });
       }
     });
   });
 
-  return { title, description, url, canonicalUrl, headings };
+  // Get Open Graph and Twitter meta tags
+  const socialMetaTags = {};
+  const metaTags = document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]');
+
+  metaTags.forEach(tag => {
+    const key = tag.getAttribute('property') || tag.getAttribute('name');
+    const value = tag.getAttribute('content');
+    if (key && value) {
+      // Store them, can be organized later
+      if (!socialMetaTags[key]) {
+        socialMetaTags[key] = [];
+      }
+      socialMetaTags[key].push(value);
+    }
+  });
+
+  return { title, description, url, canonicalUrl, headings, socialMetaTags };
 }
+

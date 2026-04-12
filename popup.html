@@ -170,12 +170,46 @@
       }
       .tag-count-tag {
         font-weight: bold;
-        color: #555; 
+        color: #555;
       }
 
       .tag-count-number {
         color: #999;
         font-size: 0.85rem;
+      }
+      #social-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .social-meta-item {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #eee; /* Separator for each meta tag */
+        display: flex;
+        flex-direction: column; /* Stack key and value */
+      }
+
+      .social-meta-item:last-child {
+        border-bottom: none; /* No border for the last item */
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .social-meta-key {
+        font-weight: bold;
+        color: #4caf50; /* Green color for keys */
+        margin-bottom: 5px;
+        font-size: 0.95rem;
+        word-break: break-all; /* Break long keys if necessary */
+      }
+
+      .social-meta-value {
+        color: #555; /* Dark gray for values */
+        font-size: 0.9rem;
+        word-break: break-all; /* Break long values */
+        line-height: 1.4;
       }
     </style>
   </head>
@@ -183,6 +217,7 @@
     <div class="tabs">
       <button class="tab-button" data-tab="overview">Overview</button>
       <button class="tab-button" data-tab="headings">Headings</button>
+      <button class="tab-button" data-tab="social">Social</button>
     </div>
 
     <div id="overview" class="tab-pane">
@@ -203,6 +238,12 @@
       </div>
     </div>
 
+    <div id="social" class="tab-pane">
+      <div class="tab-content">
+        <h3>Social Meta Tags</h3>
+        <ul id="social-list"></ul>
+      </div>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>
