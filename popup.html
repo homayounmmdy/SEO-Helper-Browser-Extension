@@ -2,17 +2,51 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Heading Counter</title>
+  <title>Page Info</title>
   <style>
-    body { font-family: Arial; width: 220px; }
+    body { font-family: Arial; width: 350px; }
+    .tabs { overflow: hidden; border-bottom: 1px solid #ccc; }
+    .tabs button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 10px 15px;
+      transition: 0.3s;
+      font-size: 14px;
+    }
+    .tabs button:hover { background-color: #ddd; }
+    .tabs button.active { background-color: #eee; }
+    .tab-content { padding: 15px 12px; border: 1px solid #ccc; border-top: none; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    h3 { margin-top: 0; }
     ul { padding-left: 18px; }
+    label { font-weight: bold; }
   </style>
 </head>
 <body>
-  <h3>Heading Count</h3>
-  <button id="scanBtn">Scan Page</button>
-  <ul id="result"></ul>
 
-  <script src="./popup.js"></script>
+<div class="tabs">
+  <button class="tab-button" data-tab="overview">Overview</button>
+  <button class="tab-button" data-tab="headings">Headings</button>
+</div>
+
+<div id="overview" class="tab-pane active">
+  <h3>Page Overview</h3>
+  <p><label>Title:</label> <span id="pageTitle"></span></p>
+  <p><label>Description:</label> <span id="pageDescription"></span></p>
+  <p><label>URL:</label> <span id="pageUrl"></span></p>
+  <p><label>Canonical URL:</label> <span id="canonicalUrl"></span></p>
+</div>
+
+<div id="headings" class="tab-pane">
+  <h3>Heading Count</h3>
+  <ul id="result"></ul>
+</div>
+
+<script src="popup.js"></script>
+
 </body>
 </html>
