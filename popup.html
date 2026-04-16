@@ -1,217 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SEO Helper</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        width: 400px;
-        padding: 15px;
-        background-color: #f8f9fa;
-        color: #333;
-      }
-      .tabs {
-        overflow: hidden;
-        border-bottom: 1px solid #dee2e6;
-        margin-bottom: 15px;
-        background-color: #e9ecef;
-      }
-      .tabs button {
-        background-color: inherit;
-        float: left;
-        border: none;
-        outline: none;
-        cursor: pointer;
-        padding: 12px 20px;
-        transition: 0.3s;
-        font-size: 16px;
-        border-right: 1px solid #dee2e6; /* Separator */
-        border-top: none;
-        border-left: none;
-        border-bottom: none;
-        margin-right: 0px; /* No space needed if borders are used */
-        font-weight: 500;
-        color: #495057;
-      }
-      .tabs button:hover {
-        background-color: #ced4da;
-        color: #212529;
-      }
-      .tabs button.active {
-        background-color: #ffffff;
-        border-bottom: 2px solid #ffffff;
-        color: #00caff;
-        font-weight: bold;
-      }
-      .tab-content {
-        border: 1px solid #dee2e6;
-        border-top: none;
-        padding: 20px;
-        background-color: #ffffff;
-        border-bottom-left-radius: 5px;
-        border-bottom-right-radius: 5px;
-      }
-      .tab-pane {
-        display: none;
-      }
-      .tab-pane.active {
-        display: block;
-      }
-      h3 {
-        margin-top: 0;
-        color: #00caff;
-        font-size: 20px;
-        border-bottom: 2px solid #00caff;
-        padding-bottom: 8px;
-        margin-bottom: 15px;
-      }
-
-      /* Styles for Overview Tab */
-      #overview p {
-        margin-bottom: 12px;
-        line-height: 1.6;
-      }
-      #overview label {
-        font-weight: bold;
-        color: #495057;
-        display: inline-block;
-        width: 100px;
-      } /* Aligned labels */
-      #pageTitle,
-      #pageDescription,
-      #pageUrl,
-      #canonicalUrl {
-        color: #333;
-        display: inline-block;
-        vertical-align: top; /* Align text with label */
-        max-width: calc(100% - 110px); /* Prevent overflow */
-        word-wrap: break-word; /* Wrap long URLs/descriptions */
-      }
-      #pageDescription {
-        max-width: calc(100% - 110px);
-      } /* Ensure description also wraps */
-
-      /* Styles for Headings Tab */
-      #result {
-        list-style-type: none; /* Removes the dots */
-        padding: 0;
-      }
-
-      #result li {
-        margin-bottom: 10px;
-        line-height: 1.5;
-        color: #495057;
-        border-bottom: 1px solid #eee; /* Light separator line */
-        padding-bottom: 5px;
-      }
-
-      /* Updated Tag Label Styling */
-      .tag {
-        font-size: 11px;
-        font-weight: bold;
-        background-color: #e9ecef;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-right: 8px;
-        color: #495057;
-        text-transform: uppercase;
-      }
-
-      /* Responsive Hierarchy */
-      #result li.h1 {
-        padding-left: 0px;
-        font-size: 18px;
-        font-weight: bold;
-        color: #212529;
-      }
-      #result li.h2 {
-        padding-left: 15px;
-        font-size: 16px;
-        font-weight: 600;
-      }
-      #result li.h3 {
-        padding-left: 30px;
-        font-size: 15px;
-        font-weight: 500;
-      }
-      #result li.h4 {
-        padding-left: 45px;
-        font-size: 14px;
-        font-weight: 400;
-      }
-      #result li.h5 {
-        padding-left: 60px;
-        font-size: 13px;
-        font-weight: 400;
-      }
-      #result li.h6 {
-        padding-left: 75px;
-        font-size: 12px;
-        font-weight: 400;
-        color: #808080;
-      }
-
-      #headings-status {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        width: 200px; /* Fixed width for the status section */
-        border-left: 1px solid #eee; /* Separator line */
-        padding-left: 20px;
-      }
-
-      .heading-status-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        font-size: 0.9rem;
-      }
-      .tag-count-tag {
-        font-weight: bold;
-        color: #555;
-      }
-
-      .tag-count-number {
-        color: #999;
-        font-size: 0.85rem;
-      }
-      #social-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      .social-meta-item {
-        margin-bottom: 12px;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #eee; /* Separator for each meta tag */
-        display: flex;
-        flex-direction: column; /* Stack key and value */
-      }
-
-      .social-meta-item:last-child {
-        border-bottom: none; /* No border for the last item */
-        margin-bottom: 0;
-        padding-bottom: 0;
-      }
-
-      .social-meta-key {
-        font-weight: bold;
-        color: #4caf50; 
-        margin-bottom: 5px;
-        font-size: 0.95rem;
-        word-break: break-all; /* Break long keys if necessary */
-      }
-
-      .social-meta-value {
-        color: #555; /* Dark gray for values */
-        font-size: 0.9rem;
-        word-break: break-all; /* Break long values */
-        line-height: 1.4;
-      }
-    </style>
+    <link rel="stylesheet" href="./style.css">
   </head>
   <body>
     <div class="tabs">
@@ -223,43 +16,42 @@
 
     <div id="overview" class="tab-pane">
       <div class="tab-content">
-        <h3>Page Overview</h3>
-        <p><label>Title:</label> <span id="pageTitle"></span></p>
-        <p><label>Description:</label> <span id="pageDescription"></span></p>
-        <p><label>URL:</label> <span id="pageUrl"></span></p>
-        <p><label>Canonical URL:</label> <span id="canonicalUrl"></span></p>
+        <h3>📄 Page insights</h3>
+        <div class="info-grid">
+          <div class="info-row"><div class="info-label">Title</div><div class="info-value" id="pageTitle">—</div></div>
+          <div class="info-row"><div class="info-label">Description</div><div class="info-value" id="pageDescription">—</div></div>
+          <div class="info-row"><div class="info-label">URL</div><div class="info-value" id="pageUrl">—</div></div>
+          <div class="info-row"><div class="info-label">Canonical</div><div class="info-value" id="canonicalUrl">—</div></div>
+        </div>
+        <div class="note">✓ SEO essentials</div>
       </div>
     </div>
 
     <div id="headings" class="tab-pane">
-      <div class="tab-content" id="headingsContent">
-        <h3>Page Headings</h3>
-        <ul id="result"></ul>
-        <ul id="headings-status"></ul>
+      <div class="tab-content">
+        <h3>🔍 Heading hierarchy</h3>
+        <ul id="result" class="headings-tree"></ul>
+        <div id="headings-status-wrapper">
+          <div class="stats-chips" id="stats-chips-container"></div>
+        </div>
       </div>
     </div>
 
     <div id="social" class="tab-pane">
       <div class="tab-content">
-        <h3>Social Meta Tags</h3>
-        <ul id="social-list"></ul>
+        <h3>🕊️ Social & Open Graph</h3>
+        <ul id="social-list" class="social-list"></ul>
       </div>
     </div>
+
     <div id="schema" class="tab-pane">
       <div class="tab-content">
-        <h3>Structured Data (Schema)</h3>
-        <pre
-          id="schema-output"
-          style="
-            font-size: 11px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            background: #f8f8f8;
-            padding: 10px;
-          "
-        ></pre>
+        <h3>📐 Structured data (JSON-LD)</h3>
+        <pre id="schema-output" class="schema-block"></pre>
       </div>
     </div>
+
     <script src="popup.js"></script>
+
   </body>
 </html>

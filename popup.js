@@ -1,229 +1,278 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Setup tab buttons
-  document.querySelectorAll(".tab-button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      openTab(btn.dataset.tab, btn);
-    });
+// ------------------- DOM Elements -------------------
+const DOM = {
+  tabs: {
+    buttons: () => document.querySelectorAll('.tab-button'),
+    panes: () => document.querySelectorAll('.tab-pane')
+  },
+  overview: {
+    title: () => document.getElementById('pageTitle'),
+    description: () => document.getElementById('pageDescription'),
+    url: () => document.getElementById('pageUrl'),
+    canonical: () => document.getElementById('canonicalUrl')
+  },
+  headings: {
+    list: () => document.getElementById('result'),
+    statsContainer: () => document.getElementById('stats-chips-container')
+  },
+  social: {
+    list: () => document.getElementById('social-list')
+  },
+  schema: {
+    output: () => document.getElementById('schema-output')
+  }
+};
+
+// ------------------- Initialization -------------------
+document.addEventListener('DOMContentLoaded', init);
+
+function init() {
+  setupTabListeners();
+  loadPageData();
+  openDefaultTab();
+}
+
+// ------------------- Tab Management -------------------
+function setupTabListeners() {
+  DOM.tabs.buttons().forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn));
   });
+}
 
-  // Load page data immediately when popup opens
-  getPageInfoAndHeadings();
+function switchTab(tabName, activeButton) {
+  // Hide all panes
+  DOM.tabs.panes().forEach(pane => pane.classList.remove('active'));
+  // Deactivate all buttons
+  DOM.tabs.buttons().forEach(btn => btn.classList.remove('active'));
+  // Activate selected pane
+  const targetPane = document.getElementById(tabName);
+  if (targetPane) targetPane.classList.add('active');
+  // Activate clicked button
+  if (activeButton) activeButton.classList.add('active');
+}
 
-  // Open the default tab ("Overview")
+function openDefaultTab() {
   const defaultBtn = document.querySelector('.tab-button[data-tab="overview"]');
-  if (defaultBtn) {
-    openTab("overview", defaultBtn);
-  }
-});
+  if (defaultBtn) switchTab('overview', defaultBtn);
+}
 
-function openTab(tabName, buttonElement) {
-  // Hide all tab panes
-  document.querySelectorAll(".tab-pane").forEach((el) => {
-    el.classList.remove("active");
-  });
+// ------------------- Main Data Loading -------------------
+async function loadPageData() {
+  try {
+    const activeTab = await getCurrentTab();
+    if (!activeTab) throw new Error('No active tab found');
 
-  // Remove active class from all tab buttons
-  document.querySelectorAll(".tab-button").forEach((btn) => {
-    btn.classList.remove("active");
-  });
+    const pageData = await executeContentScript(activeTab.id);
+    if (!pageData) throw new Error('Failed to extract page data');
 
-  // Show the active tab pane
-  const activePane = document.getElementById(tabName);
-  if (activePane) {
-    activePane.classList.add("active");
-  }
-
-  // Add active class to the clicked button
-  if (buttonElement) {
-    buttonElement.classList.add("active");
+    renderAllTabs(pageData);
+  } catch (error) {
+    console.error('SEO Helper Error:', error);
+    renderErrorState();
   }
 }
 
-async function getPageInfoAndHeadings() {
+// ------------------- Chrome Extension Helpers -------------------
+async function getCurrentTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
+}
 
+async function executeContentScript(tabId) {
   const results = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    function: getPageDataScript,
+    target: { tabId },
+    function: extractPageDataScript
   });
+  return results?.[0]?.result || null;
+}
 
-  if (!results || !results[0] || !results[0].result) {
-    console.error("Failed to get page data.");
+// ------------------- Rendering Functions -------------------
+function renderAllTabs(data) {
+  renderOverviewTab(data);
+  renderHeadingsTab(data);
+  renderSocialTab(data);
+  renderSchemaTab(data);
+}
+
+function renderOverviewTab(data) {
+  setTextContent(DOM.overview.title(), data.title?.trim() || '❌ Missing title');
+  setTextContent(DOM.overview.description(), data.description?.trim() || 'Not specified');
+  setTextContent(DOM.overview.url(), data.url || '—');
+  setTextContent(DOM.overview.canonical(), data.canonicalUrl || '❌ Not set (SEO risk)');
+}
+
+function renderHeadingsTab(data) {
+  renderHeadingsList(data.headings);
+  renderHeadingStats(data.headings);
+}
+
+function renderHeadingsList(headings) {
+  const container = DOM.headings.list();
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!headings.length) {
+    container.innerHTML = '<li class="empty-heading">📭 No heading tags (H1-H6) found.</li>';
     return;
   }
 
-  const data = results[0].result;
+  headings.forEach(({ tag, text }) => {
+    const li = document.createElement('li');
+    li.className = tag;
 
-  // Populate Schema tab
-  const schemaOutput = document.getElementById("schema-output");
-  if (data.schemaData && data.schemaData.length > 0) {
-    schemaOutput.textContent = JSON.stringify(data.schemaData, null, 2);
-  } else {
-    schemaOutput.textContent = "No JSON-LD schema found on this page.";
-  }
+    const badge = createElement('span', 'heading-badge', tag.toUpperCase());
+    const textSpan = createElement('span', 'heading-text', text.trim());
+    textSpan.style.flex = '1';
+    textSpan.style.wordBreak = 'break-word';
 
-  // Populate Overview tab
-  document.getElementById("pageTitle").textContent = data.title || "Missing";
-  document.getElementById("pageDescription").textContent =
-    data.description || "Missing";
-  document.getElementById("pageUrl").textContent = data.url || "Missing";
-  document.getElementById("canonicalUrl").textContent =
-    data.canonicalUrl || "Missing";
-
-  // Populate Headings tab with actual content
-  const headingsList = document.getElementById("result");
-  headingsList.innerHTML = ""; // Clear previous results
-
-  if (data.headings.length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "No headings found on this page.";
-    headingsList.appendChild(li);
-  } else {
-    data.headings.forEach(({ tag, text }) => {
-      const li = document.createElement("li");
-      li.classList.add(tag);
-
-      const tagLabel = document.createElement("span");
-      tagLabel.className = "tag";
-      tagLabel.textContent = tag.toUpperCase();
-
-      const textNode = document.createTextNode(text.trim());
-
-      li.appendChild(tagLabel);
-      li.appendChild(textNode);
-
-      headingsList.appendChild(li);
-    });
-  }
-
-  // Count headings by tag
-  const headingCounts = {};
-  data.headings.forEach((heading) => {
-    headingCounts[heading.tag] = (headingCounts[heading.tag] || 0) + 1;
+    li.append(badge, textSpan);
+    container.appendChild(li);
   });
+}
 
-  // Populate Headings Status
-  const statusList = document.getElementById("headings-status");
-  statusList.innerHTML = ""; // Clear previous status
+function renderHeadingStats(headings) {
+  const container = DOM.headings.statsContainer();
+  if (!container) return;
+  container.innerHTML = '';
 
-  const sortedTags = ["h1", "h2", "h3", "h4", "h5", "h6"];
-  sortedTags.forEach((tag) => {
-    const count = headingCounts[tag] || 0;
+  const counts = countHeadingsByTag(headings);
+  const order = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+  let hasAny = false;
+
+  order.forEach(tag => {
+    const count = counts[tag] || 0;
     if (count > 0) {
-      const li = document.createElement("li");
-      li.className = "heading-status-item";
-
-      const tagSpan = document.createElement("span");
-      tagSpan.className = "tag-count-tag";
-      tagSpan.textContent = tag.toUpperCase();
-
-      const countSpan = document.createElement("span");
-      countSpan.className = "tag-count-number";
-      countSpan.textContent = count;
-
-      li.appendChild(tagSpan);
-      li.appendChild(countSpan);
-      statusList.appendChild(li);
+      hasAny = true;
+      const chip = createElement('div', 'chip');
+      chip.innerHTML = `<span>${tag.toUpperCase()}</span> ${count}`;
+      container.appendChild(chip);
     }
   });
 
-  // Add a general status message if no headings are found at all
-  if (data.headings.length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "No headings found on this page.";
-    statusList.appendChild(li);
-  }
-
-  // Populate Social tab
-  const socialList = document.getElementById("social-list");
-  socialList.innerHTML = ""; // Clear previous results
-
-  if (Object.keys(data.socialMetaTags).length === 0) {
-    const li = document.createElement("li");
-    li.textContent = "No Open Graph or Twitter meta tags found.";
-    socialList.appendChild(li);
-  } else {
-    // Sort keys for consistent display (e.g., og:title, og:description, twitter:card, etc.)
-    const sortedKeys = Object.keys(data.socialMetaTags).sort();
-
-    sortedKeys.forEach((key) => {
-      const values = data.socialMetaTags[key];
-      values.forEach((value) => {
-        const li = document.createElement("li");
-        li.className = "social-meta-item";
-
-        const keySpan = document.createElement("span");
-        keySpan.className = "social-meta-key";
-        keySpan.textContent = key;
-
-        const valueSpan = document.createElement("span");
-        valueSpan.className = "social-meta-value";
-        valueSpan.textContent = value;
-
-        li.appendChild(keySpan);
-        li.appendChild(valueSpan);
-        socialList.appendChild(li);
-      });
-    });
+  if (!hasAny && !headings.length) {
+    container.innerHTML = '<div class="chip">⚡ No headings found</div>';
   }
 }
 
-// This function will be executed in the context of the current page
-// This function will be executed in the context of the current page
-function getPageDataScript() {
-  const title = document.querySelector("title")?.textContent;
-  const description = document.querySelector(
-    'meta[name="description"]',
-  )?.content;
+function renderSocialTab(data) {
+  const container = DOM.social.list();
+  if (!container) return;
+  container.innerHTML = '';
+
+  const socialTags = data.socialMetaTags || {};
+  const keys = Object.keys(socialTags).sort();
+
+  if (!keys.length) {
+    container.innerHTML = '<li class="empty-state">🌱 No Open Graph / Twitter meta tags</li>';
+    return;
+  }
+
+  keys.forEach(key => {
+    const values = socialTags[key];
+    values.forEach(value => {
+      const item = createElement('li', 'social-item');
+      const keySpan = createElement('div', 'social-key', key);
+      const valSpan = createElement('div', 'social-value', value || '—');
+      item.append(keySpan, valSpan);
+      container.appendChild(item);
+    });
+  });
+}
+
+function renderSchemaTab(data) {
+  const container = DOM.schema.output();
+  if (!container) return;
+
+  if (data.schemaData?.length) {
+    container.textContent = JSON.stringify(data.schemaData, null, 2);
+  } else {
+    container.textContent = '✨ No JSON-LD structured data detected.';
+  }
+}
+
+function renderErrorState() {
+  setTextContent(DOM.overview.title(), '⚠️ Unable to load');
+  setTextContent(DOM.overview.description(), 'Try refreshing the page');
+  setTextContent(DOM.overview.url(), '—');
+  setTextContent(DOM.overview.canonical(), '—');
+
+  if (DOM.headings.list()) {
+    DOM.headings.list().innerHTML = '<li>❌ Could not extract headings</li>';
+  }
+  if (DOM.social.list()) {
+    DOM.social.list().innerHTML = '<li class="empty-state">❌ No social data available</li>';
+  }
+  if (DOM.schema.output()) {
+    DOM.schema.output().textContent = '❌ Unable to fetch schema data';
+  }
+}
+
+// ------------------- Utility Functions -------------------
+function setTextContent(element, text) {
+  if (element) element.textContent = text;
+}
+
+function createElement(tag, className, textContent = '') {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (textContent) el.textContent = textContent;
+  return el;
+}
+
+function countHeadingsByTag(headings) {
+  return headings.reduce((counts, { tag }) => {
+    counts[tag] = (counts[tag] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+// ------------------- Content Script (Injected into Page) -------------------
+// This function runs in the context of the web page, NOT the extension popup
+function extractPageDataScript() {
+  // Helper: safe text extraction
+  const getText = (selector) => document.querySelector(selector)?.textContent || '';
+  const getContent = (selector, attribute = 'content') =>
+      document.querySelector(selector)?.getAttribute(attribute) || '';
+
+  // Basic SEO data
+  const title = getText('title');
+  const description = getContent('meta[name="description"]');
   const url = window.location.href;
-  const canonicalUrl =
-    document.querySelector('link[rel="canonical"]')?.href || null;
+  const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || null;
 
-  const tags = ["h1", "h2", "h3", "h4", "h5", "h6"];
+  // Extract headings (H1-H6)
   const headings = [];
+  const headingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
-  tags.forEach((tag) => {
-    document.querySelectorAll(tag).forEach((element) => {
-      const text = element.textContent.trim();
-      if (text) {
-        headings.push({ tag: tag, text: text });
-      }
+  headingTags.forEach(tag => {
+    document.querySelectorAll(tag).forEach(el => {
+      const text = el.textContent.trim();
+      if (text) headings.push({ tag, text });
     });
   });
 
-  // Get Open Graph and Twitter meta tags
+  // Extract social meta tags (Open Graph & Twitter)
   const socialMetaTags = {};
-  const metaTags = document.querySelectorAll(
-    'meta[property^="og:"], meta[name^="twitter:"]',
-  );
+  const socialSelectors = 'meta[property^="og:"], meta[name^="twitter:"]';
 
-  metaTags.forEach((tag) => {
-    const key = tag.getAttribute("property") || tag.getAttribute("name");
-    const value = tag.getAttribute("content");
+  document.querySelectorAll(socialSelectors).forEach(tag => {
+    const key = tag.getAttribute('property') || tag.getAttribute('name');
+    const value = tag.getAttribute('content');
     if (key && value) {
-      // Store them, can be organized later
-      if (!socialMetaTags[key]) {
-        socialMetaTags[key] = [];
-      }
-      socialMetaTags[key].push(value);
+      if (!socialMetaTags[key]) socialMetaTags[key] = [];
+      if (!socialMetaTags[key].includes(value)) socialMetaTags[key].push(value);
     }
   });
-  const schemaScripts = document.querySelectorAll(
-    'script[type="application/ld+json"]',
-  );
-  const schemaData = [];
 
-  schemaScripts.forEach((script) => {
+  // Extract JSON-LD Schema
+  const schemaData = [];
+  document.querySelectorAll('script[type="application/ld+json"]').forEach(script => {
     try {
-      const json = JSON.parse(script.textContent);
-      // Handle both single objects and arrays of schemas
-      if (Array.isArray(json)) {
-        schemaData.push(...json);
-      } else {
-        schemaData.push(json);
-      }
+      const parsed = JSON.parse(script.textContent);
+      if (Array.isArray(parsed)) schemaData.push(...parsed);
+      else schemaData.push(parsed);
     } catch (e) {
-      console.error("Error parsing JSON-LD", e);
+      // Silently skip invalid JSON
+      console.debug('Invalid JSON-LD skipped');
     }
   });
 
@@ -234,6 +283,6 @@ function getPageDataScript() {
     canonicalUrl,
     headings,
     socialMetaTags,
-    schemaData,
+    schemaData
   };
 }
