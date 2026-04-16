@@ -315,3 +315,130 @@ hr {
   padding-top: 12px;
   margin-top: 12px;
 }
+
+/* Links Tab Styles */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 12px 8px;
+  text-align: center;
+  border: 1px solid #eef2f6;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #5b6e8c;
+  margin-top: 4px;
+}
+
+.stat-card.internal .stat-value { color: #10b981; }
+.stat-card.external .stat-value { color: #3b82f6; }
+.stat-card.nofollow .stat-value { color: #ef4444; }
+.stat-card.noreferrer .stat-value { color: #8b5cf6; }
+.stat-card.security .stat-value { color: #059669; }
+
+.warning-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 12px;
+  color: #92400e;
+  margin-bottom: 16px;
+}
+
+.link-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.link-filter {
+  background: #f1f5f9;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #475569;
+}
+
+.link-filter:hover {
+  background: #e2e8f0;
+}
+
+.link-filter.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.link-item {
+  background: #fafcff;
+  border: 1px solid #ecf3fa;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.link-url {
+  font-size: 12px;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.link-url a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.link-url a:hover {
+  text-decoration: underline;
+}
+
+.link-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.badge {
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 30px;
+  font-weight: 600;
+}
+
+.internal-badge { background: #d1fae5; color: #065f46; }
+.external-badge { background: #dbeafe; color: #1e40af; }
+.nofollow-badge { background: #fee2e2; color: #991b1b; }
+.follow-badge { background: #d1fae5; color: #065f46; }
+.noreferrer-badge { background: #ede9fe; color: #5b21b6; }
+.referrer-badge { background: #f1f5f9; color: #475569; }
+.secure-badge { background: #d1fae5; color: #065f46; }
+.insecure-badge { background: #fed7aa; color: #9a3412; }
+.domain-badge { background: #e0e7ff; color: #3730a3; }
+
+.link-anchor {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
