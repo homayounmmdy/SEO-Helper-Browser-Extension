@@ -13,7 +13,13 @@ const DOM = {
     title: () => document.getElementById('pageTitle'),
     description: () => document.getElementById('pageDescription'),
     url: () => document.getElementById('pageUrl'),
-    canonical: () => document.getElementById('canonicalUrl')
+    canonical: () => document.getElementById('canonicalUrl'),
+    language: () => document.getElementById('pageLanguage'),
+    robots: () => document.getElementById('robotsTag'),
+    xRobots: () => document.getElementById('xRobotsTag'),
+    keywords: () => document.getElementById('metaKeywords'),
+    publisher: () => document.getElementById('pagePublisher'),
+    wordCount: () => document.getElementById('wordCount')
   },
   headings: {
     list: () => document.getElementById('result'),
@@ -52,14 +58,10 @@ function setupTabListeners() {
 }
 
 function switchTab(tabName, activeButton) {
-  // Hide all panes
   DOM.tabs.panes().forEach(pane => pane.classList.remove('active'));
-  // Deactivate all buttons
   DOM.tabs.buttons().forEach(btn => btn.classList.remove('active'));
-  // Activate selected pane
   const targetPane = document.getElementById(tabName);
   if (targetPane) targetPane.classList.add('active');
-  // Activate clicked button
   if (activeButton) activeButton.classList.add('active');
 }
 
@@ -114,6 +116,31 @@ function renderOverviewTab(data) {
   setTextContent(DOM.overview.description(), data.description?.trim() || 'Not specified');
   setTextContent(DOM.overview.url(), data.url || '—');
   setTextContent(DOM.overview.canonical(), data.canonicalUrl || '❌ Not set (SEO risk)');
+  setTextContent(DOM.overview.language(), data.language || 'Not specified');
+  setTextContent(DOM.overview.robots(), data.robotsTag || 'Not specified (index, follow)');
+  setTextContent(DOM.overview.xRobots(), data.xRobotsTag || 'Not set');
+  setTextContent(DOM.overview.keywords(), data.keywords || 'Not specified');
+  setTextContent(DOM.overview.publisher(), data.publisher || 'Not specified');
+
+  // Word count with nice formatting
+  const wordCount = data.wordCount || 0;
+  const wordCountText = wordCount > 0 ? `${wordCount.toLocaleString()} words` : 'Unable to calculate';
+  setTextContent(DOM.overview.wordCount(), wordCountText);
+
+  // Add color coding for word count
+  const wordCountEl = DOM.overview.wordCount();
+  if (wordCountEl && wordCount > 0) {
+    if (wordCount < 300) {
+    wordCountEl.setAttribute('data-status', 'low');
+    wordCountEl.title = '⚠️ Low word count - consider adding more content (300+ recommended)';
+    } else if (wordCount < 600) {
+    wordCountEl.setAttribute('data-status', 'medium');
+    wordCountEl.title = '📊 Medium word count - good but could be improved';
+    } else {
+    wordCountEl.setAttribute('data-status', 'good');
+    wordCountEl.title = '✅ Good word count!';
+    }
+  }
 }
 
 function renderHeadingsTab(data) {
@@ -220,7 +247,7 @@ function renderLinksSummary(links) {
   const nofollow = links.filter(l => l.hasNofollow).length;
   const noReferrer = links.filter(l => l.hasNoReferrer).length;
   const secureLinks = links.filter(l => l.isSecure).length;
-  const vulnerableLinks = links.filter(l => !l.isSecure && !l.isInternal).length;
+  const vulnerableLinks = links.filter(l => !l.isSecure && !l.isInternal);
 
   container.innerHTML = `
     <div class="stats-grid">
@@ -249,7 +276,7 @@ function renderLinksSummary(links) {
         <div class="stat-label">✅ HTTPS</div>
       </div>
     </div>
-    ${vulnerableLinks > 0 ? `<div class="warning-banner">⚠️ ${vulnerableLinks} external HTTP link(s) detected (security risk)</div>` : ''}
+    ${vulnerableLinks.length > 0 ? `<div class="warning-banner">⚠️ ${vulnerableLinks.length} external HTTP link(s) detected (security risk)</div>` : ''}
   `;
 }
 
@@ -280,14 +307,14 @@ function renderLinksList(links, filter = 'all') {
   container.innerHTML = filteredLinks.map(link => `
     <div class="link-item ${link.isInternal ? 'internal-link' : 'external-link'}">
       <div class="link-url">
-        <a href="${link.url}" target="_blank" rel="noopener">${truncateUrl(link.url, 70)}</a>
+        <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener">${escapeHtml(truncateUrl(link.url, 70))}</a>
       </div>
       <div class="link-meta">
         ${link.isInternal ? '<span class="badge internal-badge">🔗 Internal</span>' : '<span class="badge external-badge">🌐 External</span>'}
         ${link.hasNofollow ? '<span class="badge nofollow-badge">🚫 nofollow</span>' : '<span class="badge follow-badge">✅ follow</span>'}
         ${link.hasNoReferrer ? '<span class="badge noreferrer-badge">🔒 noreferrer</span>' : '<span class="badge referrer-badge">📎 referrer</span>'}
         ${link.isSecure ? '<span class="badge secure-badge">🔒 HTTPS</span>' : '<span class="badge insecure-badge">⚠️ HTTP</span>'}
-        ${link.isInternal ? '' : `<span class="badge domain-badge">${getDomain(link.url)}</span>`}
+        ${link.isInternal ? '' : `<span class="badge domain-badge">${escapeHtml(getDomain(link.url))}</span>`}
       </div>
       ${link.text ? `<div class="link-anchor">📝 ${escapeHtml(link.text)}</div>` : ''}
     </div>
@@ -298,10 +325,8 @@ function setupLinkFilters() {
   const filters = DOM.links.filters();
   filters.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Update active state
       filters.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Render filtered list
       renderLinksList(currentLinksData, btn.dataset.filter);
     });
   });
@@ -343,11 +368,11 @@ function getDomain(url) {
 function escapeHtml(str) {
   if (!str) return '';
   return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function renderErrorState() {
@@ -355,6 +380,12 @@ function renderErrorState() {
   setTextContent(DOM.overview.description(), 'Try refreshing the page');
   setTextContent(DOM.overview.url(), '—');
   setTextContent(DOM.overview.canonical(), '—');
+  setTextContent(DOM.overview.language(), '—');
+  setTextContent(DOM.overview.robots(), '—');
+  setTextContent(DOM.overview.xRobots(), '—');
+  setTextContent(DOM.overview.keywords(), '—');
+  setTextContent(DOM.overview.publisher(), '—');
+  setTextContent(DOM.overview.wordCount(), '—');
 
   if (DOM.headings.list()) {
     DOM.headings.list().innerHTML = '<li>❌ Could not extract headings</li>';
@@ -371,12 +402,15 @@ function renderErrorState() {
 }
 
 // ------------------- Content Script (Injected into Page) -------------------
-// This function runs in the context of the web page, NOT the extension popup
 function extractPageDataScript() {
-  // Helper: safe text extraction
+  // Helper functions
   const getText = (selector) => document.querySelector(selector)?.textContent || '';
   const getContent = (selector, attribute = 'content') =>
-      document.querySelector(selector)?.getAttribute(attribute) || '';
+    document.querySelector(selector)?.getAttribute(attribute) || '';
+  const getMeta = (name) => {
+    const meta = document.querySelector(`meta[name="${name}"], meta[property="${name}"]`);
+    return meta?.getAttribute('content') || '';
+  };
 
   // Basic SEO data
   const title = getText('title');
@@ -385,7 +419,55 @@ function extractPageDataScript() {
   const canonicalUrl = document.querySelector('link[rel="canonical"]')?.href || null;
   const baseDomain = getBaseDomain(url);
 
-  // Extract headings (H1-H6)
+  // NEW: Language detection
+  const htmlLang = document.documentElement.getAttribute('lang') || '';
+  const metaLang = getMeta('language') || getMeta('lang');
+  const language = htmlLang || metaLang || 'Not specified';
+
+  // NEW: Robots Meta Tag
+  const robotsContent = getMeta('robots');
+  let robotsTag = robotsContent || 'Not specified';
+  if (robotsContent) {
+    const hasIndex = robotsContent.includes('index');
+    const hasFollow = robotsContent.includes('follow');
+    const hasNoIndex = robotsContent.includes('noindex');
+    const hasNoFollow = robotsContent.includes('nofollow');
+
+    if (hasNoIndex && hasNoFollow) robotsTag = '🚫 noindex, nofollow';
+    else if (hasNoIndex) robotsTag = '🚫 noindex, follow';
+    else if (hasNoFollow) robotsTag = '✅ index, nofollow';
+    else if (hasIndex && hasFollow) robotsTag = '✅ index, follow';
+    else robotsTag = robotsContent;
+  }
+
+  // NEW: X-Robots-Tag (from HTTP headers - simulated via meta, but we check meta first)
+  // Note: True X-Robots-Tag requires HTTP header inspection, but some sites use meta as fallback
+  const xRobotsMeta = getMeta('x-robots-tag');
+  let xRobotsTag = xRobotsMeta || 'Not set (check HTTP headers)';
+
+  // NEW: Meta Keywords (deprecated but still checked)
+  const keywords = getMeta('keywords') || 'Not specified';
+
+  // NEW: Publisher (often in meta or schema)
+  const publisherMeta = getMeta('publisher') || getMeta('article:publisher') || getMeta('og:site_name');
+  let publisher = publisherMeta || 'Not specified';
+
+  // Try to find publisher in schema if not found in meta
+  if (publisher === 'Not specified') {
+    const schemaScript = document.querySelector('script[type="application/ld+json"]');
+    if (schemaScript) {
+      try {
+        const schema = JSON.parse(schemaScript.textContent);
+        const schemaPublisher = schema.publisher?.name || schema.organization?.name || schema.author?.name;
+        if (schemaPublisher) publisher = schemaPublisher;
+      } catch (e) {}
+    }
+  }
+
+  // NEW: Word Count (counts visible text only)
+  const wordCount = calculateWordCount();
+
+  // Extract headings
   const headings = [];
   const headingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
@@ -396,7 +478,7 @@ function extractPageDataScript() {
     });
   });
 
-  // Extract all links (anchor tags)
+  // Extract links
   const links = [];
   const anchors = document.querySelectorAll('a[href]');
 
@@ -408,7 +490,7 @@ function extractPageDataScript() {
     try {
       fullUrl = new URL(href, url).href;
     } catch {
-      return; // Invalid URL, skip
+      return;
     }
 
     const isInternal = isInternalLink(fullUrl, baseDomain);
@@ -428,7 +510,7 @@ function extractPageDataScript() {
     });
   });
 
-  // Remove duplicates (keep first occurrence)
+  // Remove duplicates
   const uniqueLinks = [];
   const seenUrls = new Set();
   for (const link of links) {
@@ -438,7 +520,7 @@ function extractPageDataScript() {
     }
   }
 
-  // Extract social meta tags (Open Graph & Twitter)
+  // Extract social meta tags
   const socialMetaTags = {};
   const socialSelectors = 'meta[property^="og:"], meta[name^="twitter:"]';
 
@@ -458,13 +540,31 @@ function extractPageDataScript() {
       const parsed = JSON.parse(script.textContent);
       if (Array.isArray(parsed)) schemaData.push(...parsed);
       else schemaData.push(parsed);
-    } catch (e) {
-      // Silently skip invalid JSON
-      console.debug('Invalid JSON-LD skipped');
-    }
+    } catch (e) {}
   });
 
-  // Helper functions
+  // Helper: Calculate word count from visible text
+  function calculateWordCount() {
+    // Clone body to avoid modifying the page
+    const bodyClone = document.body.cloneNode(true);
+
+    // Remove script and style elements
+    bodyClone.querySelectorAll('script, style, noscript, iframe, svg, img, input, button, textarea, select').forEach(el => el.remove());
+
+    // Get text content
+    const text = bodyClone.textContent || '';
+
+    // Clean and split into words
+    const words = text
+      .replace(/[^\w\s\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')
+      .filter(word => word.length > 0);
+
+    return words.length;
+  }
+
   function getBaseDomain(fullUrl) {
     try {
       const urlObj = new URL(fullUrl);
@@ -488,6 +588,12 @@ function extractPageDataScript() {
     description,
     url,
     canonicalUrl,
+    language,
+    robotsTag,
+    xRobotsTag,
+    keywords,
+    publisher,
+    wordCount,
     headings,
     socialMetaTags,
     schemaData,
